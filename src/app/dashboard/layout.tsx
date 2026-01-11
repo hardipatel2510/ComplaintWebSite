@@ -14,7 +14,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, role, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -46,13 +46,13 @@ export default function DashboardLayout({
            <nav className="space-y-1">
              <NavItem href="/dashboard" label="Overview" icon={<LayoutDashboard size={18}/>} />
              
-             {role === 'action_taker' && (
+             {userData?.role === 'action_taker' && (
                 <NavItem href="/dashboard/action-taker" label="My Tasks (Action Taker)" active />
              )}
-             {role === 'committee' && (
+             {userData?.role === 'committee' && (
                 <NavItem href="/dashboard/committee" label="Committee View" active />
              )}
-              {role === 'admin' && (
+              {userData?.role === 'admin' && (
                 <>
                 <NavItem href="/dashboard/action-taker" label="Action Taker View" />
                 <NavItem href="/dashboard/committee" label="Committee View" />
@@ -66,7 +66,7 @@ export default function DashboardLayout({
              Logged in as:<br/>
              <strong className="text-neutral-900 dark:text-neutral-100">{user.email}</strong>
              <br/>
-             Role: <span className="uppercase">{role || 'Unknown'}</span>
+             Role: <span className="uppercase">{userData?.role || 'Unknown'}</span>
           </div>
           <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => auth.signOut()}>
             <LogOut className="mr-2 h-4 w-4" />
