@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { ComplaintEditor } from "./complaint-editor";
 
 export default function ActionTakerDashboard() {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
@@ -61,6 +61,8 @@ export default function ActionTakerDashboard() {
          </CardContent>
        </Card>
 
+       <Sheet open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
+          <SheetContent>
              <SheetHeader>
                <SheetTitle>{selectedComplaint?.complaintId}</SheetTitle>
                <SheetDescription>
