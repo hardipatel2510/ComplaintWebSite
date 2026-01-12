@@ -75,6 +75,8 @@ function ComplaintContent() {
         { level: "Critical", color: "bg-red-500/20 text-red-400 border-red-500/30" }
     ];
 
+    const [file, setFile] = useState<File | null>(null);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -98,20 +100,29 @@ function ComplaintContent() {
         try {
             const complaintId = generateComplaintId();
             let passcodeHash = null;
+            let attachmentUrl = "";
             
             if (formData.passcode) {
                 passcodeHash = await hashPasscode(formData.passcode);
             }
 
-            // Construct secure payload
-            // Note: date/time/location/people are part of the 'Description' in my specific data model 
-            // OR I can add them as fields to the doc.
-            // My data model had 'description' and 'category', 'severity'. 
-            // I should append these details to the description text or store them if schemaless strictly allows.
-            // Firestore is schemaless, so I CAN add them.
-            // But let's append to description for simplicity in the Table View (which shows 'description').
-            // Actually, storing structured is better. I'll add them as fields.
-            
+            // Upload File if selected
+            if (file) {
+                 try {
+                    const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+                    const { storage } = await import("@/lib/firebase");
+                    
+                    const storageRef = ref(storage, `evidence/${complaintId}/${file.name}`);
+                    const snapshot = await uploadBytes(storageRef, file);
+                    attachmentUrl = await getDownloadURL(snapshot.ref);
+                 } catch (uploadError) {
+                     console.error("File upload failed", uploadError);
+                     toast.error("Failed to upload evidence, but proceeding with complaint.");
+                     // We proceed without the file if upload fails, or we could block. 
+                     // proceeding is safer for anonymity (don't want to lose the text).
+                 }
+            }
+
             const structuredData = {
                 complaintId: complaintId,
                 category: category as any,
@@ -119,14 +130,13 @@ function ComplaintContent() {
                 description: formData.description,
                 incidentDate: date ? date.toISOString() : new Date().toISOString(), 
                 location: formData.location, 
-                perpetrator: formData.perpetrator, // New field
-                witnesses: formData.witnesses, // New field
+                perpetrator: formData.perpetrator, 
+                witnesses: formData.witnesses, 
+                attachmentUrl: attachmentUrl || null,
                 passcode: passcodeHash,
                 status: 'Submitted',
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                // publicUpdates and internalNotes are blocked by Security Rules on create
-                // They will be implicitly undefined (treated as empty by compatible UI logic)
             };
 
             await setDoc(doc(db, "complaints", complaintId), structuredData);
@@ -425,17 +435,15 @@ function ComplaintContent() {
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-white/10 pb-4">
                                 <span className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 text-sm">06</span>
-                                Evidence <span className="text-gray-500 text-sm font-normal ml-auto">(Optional/Disabled)</span>
+                                Evidence <span className="text-gray-500 text-sm font-normal ml-auto">(Optional - Images only)</span>
                             </h3>
 
                             <FileUpload
-                                label="Upload Images, Video, or Audio"
-                                // Mock handler
+                                label="Upload Evidence (Image)"
                                 onFilesSelected={(files) => {
                                     if (files && files.length > 0) {
-                                        toast("File upload is currently disabled in this demo.", {
-                                            description: "We are only recording text data for this MVP."
-                                        });
+                                        setFile(files[0]);
+                                        toast.success("File attached successfully");
                                     }
                                 }}
                             />
