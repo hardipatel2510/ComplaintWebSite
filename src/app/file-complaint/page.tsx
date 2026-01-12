@@ -96,6 +96,26 @@ function ComplaintContent() {
             return;
         }
 
+        if (!date) {
+            toast.error("Please select the date and time of the incident.");
+            return;
+        }
+
+        if (!formData.location.trim()) {
+            toast.error("Please specify the location.");
+            return;
+        }
+
+        if (!formData.perpetrator.trim()) {
+             toast.error("Please provide details about the subject/perpetrator.");
+             return;
+        }
+
+        if (!formData.witnesses.trim()) {
+             toast.error("Please provide witness details (or type 'None').");
+             return;
+        }
+
         if (formData.description.length < 20) {
              toast.error("Description must be at least 20 characters.");
              return;
@@ -376,7 +396,7 @@ function ComplaintContent() {
                         <div className="space-y-8">
                             <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-white/10 pb-4">
                                 <span className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 text-sm">03</span>
-                                People Involved <span className="text-gray-500 text-sm font-normal ml-auto">(Optional)</span>
+                                People Involved
                             </h3>
 
                             <div className="space-y-8">
@@ -387,14 +407,16 @@ function ComplaintContent() {
                                     onChange={handleInputChange}
                                     placeholder="Name or description..."
                                     icon={<User size={18} />}
+                                    required
                                 />
                                 <Input
                                     label="Witnesses"
                                     name="witnesses"
                                     value={formData.witnesses}
                                     onChange={handleInputChange}
-                                    placeholder="Anyone else present?"
+                                    placeholder="Anyone else present? (Type 'None' if applicable)"
                                     icon={<Eye size={18} />}
+                                    required
                                 />
                             </div>
                         </div>
