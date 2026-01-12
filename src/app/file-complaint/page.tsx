@@ -107,21 +107,12 @@ function ComplaintContent() {
             }
 
             // Upload File if selected
+            // Upload File logic removed as per request (feature postponed)
+            /* 
             if (file) {
-                 try {
-                    const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-                    const { storage } = await import("@/lib/firebase");
-                    
-                    const storageRef = ref(storage, `evidence/${complaintId}/${file.name}`);
-                    const snapshot = await uploadBytes(storageRef, file);
-                    attachmentUrl = await getDownloadURL(snapshot.ref);
-                 } catch (uploadError) {
-                     console.error("File upload failed", uploadError);
-                     toast.error("Failed to upload evidence, but proceeding with complaint.");
-                     // We proceed without the file if upload fails, or we could block. 
-                     // proceeding is safer for anonymity (don't want to lose the text).
-                 }
-            }
+                 // Logic removed for now
+            } 
+            */
 
             const structuredData = {
                 complaintId: complaintId,
@@ -132,7 +123,7 @@ function ComplaintContent() {
                 location: formData.location, 
                 perpetrator: formData.perpetrator, 
                 witnesses: formData.witnesses, 
-                attachmentUrl: attachmentUrl || null,
+                attachmentUrl: null, // Explicitly null for now
                 passcode: passcodeHash,
                 status: 'Submitted',
                 createdAt: serverTimestamp(),
@@ -442,8 +433,9 @@ function ComplaintContent() {
                                 label="Upload Evidence (Image)"
                                 onFilesSelected={(files) => {
                                     if (files && files.length > 0) {
-                                        setFile(files[0]);
-                                        toast.success("File attached successfully");
+                                        toast("File upload is currently disabled.", {
+                                            description: "We are only recording text data for this MVP."
+                                        });
                                     }
                                 }}
                             />
