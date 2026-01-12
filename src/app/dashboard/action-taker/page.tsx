@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { Complaint, UserProfile } from "@/types";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ComplaintEditor } from "./complaint-editor";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, X } from "lucide-react";
+import { ShieldAlert, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, X, LogOut } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -108,7 +108,7 @@ export default function ActionTakerDashboard() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 text-white min-h-screen">
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-8 text-white min-h-screen">
       {/* Header */}
       <div className="flex bg-black/40 border border-white/10 p-6 rounded-xl backdrop-blur-sm justify-between items-center">
         <div className="space-y-1">
@@ -154,6 +154,9 @@ export default function ActionTakerDashboard() {
               </div>
             </DialogContent>
           </Dialog>
+          <Button variant="outline" className="border-red-500/20 text-red-500 hover:bg-red-500/10" onClick={() => auth.signOut()}>
+             <LogOut className="mr-2 h-4 w-4" /> Logout
+          </Button>
         </div>
       </div>
 
