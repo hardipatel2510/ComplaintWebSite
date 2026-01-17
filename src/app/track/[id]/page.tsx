@@ -186,7 +186,6 @@ export default function ComplaintStatus() {
                     Case Timeline
                 </h3>
                 
-                {/* Logic for timeline could go here, for now placeholder text */}
                 <div className="space-y-4">
                     <div className="border-l-2 border-white/10 pl-4 ml-2 space-y-6">
                         {/* Current Status Item */}
@@ -195,6 +194,23 @@ export default function ComplaintStatus() {
                             <p className="text-white font-medium">Current Status: {complaint.status}</p>
                             <p className="text-sm text-gray-500 mt-1">Your report is currently in this stage.</p>
                         </div>
+
+                         {/* Dynamic Public Updates */}
+                         {complaint.publicUpdates?.map((update, idx) => (
+                             <div key={idx} className="relative">
+                                  <span className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-[#0A1116]" />
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
+                                      <p className="text-gray-300 font-medium">Update from Committee</p>
+                                      <span className="text-xs text-gray-500">
+                                          {format(update.date.toDate(), "PPP p")}
+                                      </span>
+                                  </div>
+                                  <p className="text-sm text-gray-400 bg-white/5 p-3 rounded-lg border border-white/5">
+                                      {update.message}
+                                  </p>
+                             </div>
+                         ))}
+
                          {/* Submitted Item */}
                          <div className="relative opacity-50">
                             <span className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-gray-600 border-2 border-[#0A1116]" />
@@ -204,61 +220,41 @@ export default function ComplaintStatus() {
                             </p>
                         </div>
                     </div>
-                     {/* Evidence Section */}
-                     {complaint.attachmentUrl && (
-                         <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
-                            <span className="text-neutral-500 block text-sm mb-2">Evidence</span>
-                            <div className="rounded-md border border-neutral-100 dark:border-neutral-800 overflow-hidden relative group max-w-sm">
-                                <img 
-                                    src={complaint.attachmentUrl} 
-                                    alt="Evidence" 
-                                    className="w-full h-auto object-cover bg-neutral-50 dark:bg-neutral-900" 
-                                />
-                                <a 
-                                    href={complaint.attachmentUrl} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium backdrop-blur-sm"
-                                >
-                                    View Full Size
-                                </a>
-                            </div>
-                         </div>
-                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
+            
+             {/* Evidence Section */}
+             {complaint.attachmentUrl && (
+                 <div className="pt-4 border-t border-white/10">
+                    <span className="text-gray-500 block text-sm mb-2 font-medium">Attached Evidence</span>
+                    <div className="rounded-lg border border-white/10 overflow-hidden relative group max-w-sm bg-black/50">
+                        <img 
+                            src={complaint.attachmentUrl} 
+                            alt="Evidence" 
+                            className="w-full h-auto object-cover max-h-[300px]" 
+                        />
+                        <a 
+                            href={complaint.attachmentUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium backdrop-blur-sm"
+                        >
+                            View Full Size
+                        </a>
+                    </div>
+                 </div>
+             )}
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Public Updates & Timeline</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {complaint.publicUpdates && complaint.publicUpdates.length > 0 ? (
-                        <div className="space-y-6 relative border-l border-neutral-200 dark:border-neutral-800 ml-3">
-                            {complaint.publicUpdates.map((update, idx) => (
-                                <div key={idx} className="ml-6 relative">
-                                    <span className="absolute -left-[31px] top-1 h-3 w-3 rounded-full bg-neutral-200 dark:bg-neutral-700 ring-4 ring-white dark:ring-neutral-950"></span>
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
-                                        <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Update from Committee</span>
-                                        <span className="text-xs text-neutral-500">
-                                            {format(update.date.toDate(), "PPP p")}
-                                        </span>
-                                    </div>
-                                    <p className="text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900 p-3 rounded-md border border-neutral-100 dark:border-neutral-800">
-                                        {update.message}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-neutral-500">
-                            <Clock className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                            <p>No updates yet. The committee is reviewing your submission.</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+            {/* Info Box */}
+            <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-lg">
+                <p className="text-sm text-blue-200/80">
+                    <span className="font-semibold text-blue-400">Note:</span> To maintain anonymity, we do not display detailed investigation notes here. 
+                    If additional information is required, a secure request will appear on this dashboard.
+                </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
