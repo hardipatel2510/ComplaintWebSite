@@ -28,6 +28,13 @@ export interface Complaint {
   assignedTo?: string; // UID of action taker
   attachmentUrl?: string; // URL to uploaded evidence (Legacy/Public)
   storagePath?: string; // Supabase Storage path (Private/Official)
+  
+  // Incident Details
+  incidentDate?: string; // ISO String
+  location?: string;
+  perpetrator?: string;
+  witnesses?: string;
+
   publicUpdates?: PublicUpdate[];
   // internalNotes is NOT on the document anymore (subcollection), but if we kept it for legacy or caching:
   // internalNotes?: InternalNote[]; 

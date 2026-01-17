@@ -357,8 +357,39 @@ export default function ActionTakerDashboard() {
           </DialogHeader>
 
           <div className="py-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/40 p-4 rounded-lg border border-white/10">
+                <div>
+                   <label className="text-xs font-semibold text-gray-500 uppercase">Category</label>
+                   <p className="text-white font-medium">{selectedComplaint?.category}</p>
+                </div>
+                <div>
+                   <label className="text-xs font-semibold text-gray-500 uppercase">Severity</label>
+                   <p className={`font-medium ${
+                       selectedComplaint?.severity === 'Critical' ? 'text-red-400' :
+                       selectedComplaint?.severity === 'High' ? 'text-orange-400' :
+                       'text-teal-400'
+                   }`}>{selectedComplaint?.severity}</p>
+                </div>
+                <div>
+                   <label className="text-xs font-semibold text-gray-500 uppercase">Incident Date</label>
+                   <p className="text-white">{selectedComplaint?.incidentDate ? new Date(selectedComplaint.incidentDate).toLocaleString() : 'N/A'}</p>
+                </div>
+                <div>
+                   <label className="text-xs font-semibold text-gray-500 uppercase">Location</label>
+                   <p className="text-white">{selectedComplaint?.location || 'N/A'}</p>
+                </div>
+                <div>
+                   <label className="text-xs font-semibold text-gray-500 uppercase">Perpetrator</label>
+                   <p className="text-white">{selectedComplaint?.perpetrator || 'N/A'}</p>
+                </div>
+                <div>
+                   <label className="text-xs font-semibold text-gray-500 uppercase">Witnesses</label>
+                   <p className="text-white">{selectedComplaint?.witnesses || 'N/A'}</p>
+                </div>
+            </div>
+
             <div>
-              <h4 className="font-semibold mb-2 text-gray-200">Description</h4>
+              <h4 className="font-semibold mb-2 text-gray-200">Description / Story</h4>
               <div className="text-sm text-gray-300 bg-black/40 border border-white/10 p-4 rounded-lg leading-relaxed whitespace-pre-wrap">
                 {selectedComplaint?.description}
               </div>
