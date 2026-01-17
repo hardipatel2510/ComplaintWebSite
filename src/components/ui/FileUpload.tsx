@@ -46,7 +46,7 @@ export function FileUpload({ label, onFilesSelected }: FileUploadProps) {
                 <p className="text-sm text-gray-400">
                     {fileName ? <span className="text-brand-teal">{fileName}</span> : "Drag & drop or click to upload"}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">Supports JPG, PNG, PDF (Max 10MB)</p>
+                <p className="text-xs text-gray-600 mt-1">Supports Image, Video, Audio (Max 5MB)</p>
             </div>
         </div>
     );
