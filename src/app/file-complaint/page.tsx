@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useRef, useEffect } from "react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/CustomInput"; // Use our wrapper
 import { Textarea } from "@/components/ui/textarea"; // Use standard shadcn, or wrapper? User code used custom Textarea. Let's start with standard and wrapper if needed.
@@ -38,12 +38,32 @@ import {
 } from "@/components/ui/select";
 
 // Helper for Textarea with Label (similar to CustomInput)
-function CustomTextarea({ label, className, ...props }: any) {
+function CustomTextarea({ label, className, value, ...props }: any) {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const adjustHeight = () => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = "auto";
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        }
+    };
+
+    useEffect(() => {
+        adjustHeight();
+    }, [value]);
+
     return (
         <div className="space-y-2 w-full">
             <Label className="text-gray-300 font-medium">{label}</Label>
             <Textarea 
-                className={`bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-brand-teal/50 focus:ring-brand-teal/20 min-h-[150px] ${className}`}
+                ref={textareaRef}
+                value={value}
+                className={`bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-brand-teal/50 focus:ring-brand-teal/20 min-h-[150px] overflow-hidden resize-none transition-all duration-200 ${className}`}
+                onChange={(e: any) => {
+                    adjustHeight();
+                    props.onChange?.(e);
+                }}
                 {...props}
             />
         </div>
