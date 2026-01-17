@@ -443,48 +443,50 @@ function ComplaintContent() {
                                 Incident Details
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
-                                <DateTimePicker
-                                    label="Date & Time"
-                                    date={date}
-                                    setDate={setDate}
-                                />
-                                
-                                <div className="space-y-4">
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+                                    <DateTimePicker
+                                        label="Date & Time"
+                                        date={date}
+                                        setDate={setDate}
+                                    />
+                                    
                                      {/* Campus Selector */}
                                     <div className="space-y-2">
                                         <Label className="text-gray-300 font-medium">Campus / Institute</Label>
                                          <Select value={campus} onValueChange={setCampus}>
-                                            <SelectTrigger className="w-full bg-black/20 border-white/10 text-white h-12">
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin size={16} className="text-gray-500" />
-                                                    <SelectValue placeholder="Select Campus" />
+                                            <SelectTrigger className="w-full bg-black/20 border-white/10 text-white h-auto min-h-[3rem] py-3 text-left">
+                                                <div className="flex items-center gap-2 w-full overflow-hidden">
+                                                    <MapPin size={16} className="text-gray-500 shrink-0" />
+                                                    <span className="truncate whitespace-normal text-sm leading-normal">
+                                                        <SelectValue placeholder="Select Campus" />
+                                                    </span>
                                                 </div>
                                             </SelectTrigger>
-                                            <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                                            <SelectContent className="bg-neutral-900 border-white/10 text-white max-h-[300px]">
                                                 <SelectItem value="SAL Institute of Technology & Engineering and Research">SAL Institute of Technology & Engineering and Research</SelectItem>
                                                 <SelectItem value="SAL College of Engineering">SAL College of Engineering</SelectItem>
                                                 <SelectItem value="SAL Engineering and Technical Institute">SAL Engineering and Technical Institute</SelectItem>
                                                 <SelectItem value="SAL Institute of Diploma Studies">SAL Institute of Diploma Studies</SelectItem>
                                                 <SelectItem value="SAL Institute of Management">SAL Institute of Management</SelectItem>
                                                 <SelectItem value="SAL Institute of Pharmacy">SAL Institute of Pharmacy</SelectItem>
-                                                <SelectItem value="SAL College of Pharmacy">SAL College of Pharmacy</option>
+                                                <SelectItem value="SAL College of Pharmacy">SAL College of Pharmacy</SelectItem>
                                                 <SelectItem value="SAL School of Architecture">SAL School of Architecture</SelectItem>
                                                 <SelectItem value="SAL School of Interior Design">SAL School of Interior Design</SelectItem>
                                                 <SelectItem value="Other">Other</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
-
-                                    {/* Specific Location Input */}
-                                    <Input
-                                        label="Specific Area (Room / Floor / Building)"
-                                        value={specificLocation}
-                                        onChange={(e) => setSpecificLocation(e.target.value)}
-                                        placeholder="e.g. Library 2nd Floor, Room 101, Canteen..."
-                                        required
-                                    />
                                 </div>
+
+                                {/* Specific Location Input - Full Width */}
+                                <Input
+                                    label="Specific Area (Room / Floor / Building)"
+                                    value={specificLocation}
+                                    onChange={(e) => setSpecificLocation(e.target.value)}
+                                    placeholder="e.g. Library 2nd Floor, Room 101, Canteen..."
+                                    required
+                                />
                             </div>
                         </div>
 
