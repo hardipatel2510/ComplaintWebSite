@@ -6,19 +6,23 @@ A privacy-first, secure web application designed for Sexual Harassment Committee
 
 ### For Complainants (Public)
 
-- **Total Anonymity**: No login required to file complaints. No IP logging.
-- **Secure Submission**: Encryption-ready data handling for sensitive descriptions.
-- **Status Tracking**: Track case progress using a unique **Complaint ID** and **access code** (no email tracking).
-- **Live Updates**: View public status updates from the committee without exposing identity.
+- **Total Anonymity**: No login required. No IP logging. **Right-click disabled** globally to prevent content copying.
+- **Secure Submission**:
+  - Dynamic form with smart **Location Selection** (Campus Dropdown + Specific Area).
+  - **Multi-File Evidence Upload**: Securely attach Images, Videos, and Audio (max 10MB total) via **Supabase Storage**.
+  - Encryption-ready description handling.
+- **Status Tracking**: Track case progress using a unique **Complaint ID** and **access code**.
+- **Live Updates**: View public status updates from the committee securely.
 
 ### For Administrators & Committee (Restricted)
 
 - **Role-Based Access Control (RBAC)**:
   - **Admin**: Full system management, user creation/deletion.
-  - **Committee Member**: Read-only access to all complaints for oversight.
+  - **Committee Member**: Read-only oversight access.
   - **Action Taker**: Update status, add internal notes, and manage assigned cases.
 - **Dashboard**: Rich data visualization and case management tables.
-- **Secure Export**: Generate PDF/CSV reports for official records (Server-side generated).
+- **Media Viewer**: Securely view attached evidence directly in the dashboard.
+- **Secure Export**: Generate PDF/CSV reports for official records.
 
 ## 🛠️ Tech Stack
 
@@ -26,6 +30,7 @@ A privacy-first, secure web application designed for Sexual Harassment Committee
 - **Language**: TypeScript
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Shadcn/UI](https://ui.shadcn.com/)
 - **Backend & Auth**: [Firebase](https://firebase.google.com/) (Firestore, Auth, Admin SDK)
+- **Storage**: [Supabase](https://supabase.com/) (Object Storage)
 - **Icons**: Lucide React
 - **Deployment**: Vercel
 
@@ -34,7 +39,8 @@ A privacy-first, secure web application designed for Sexual Harassment Committee
 ### Prerequisites
 
 - Node.js 18+
-- A Firebase Project with Firestore and Auth enabled.
+- A Firebase Project (Firestore, Auth).
+- A Supabase Project (Storage bucket: 'Proof' or 'complaint-evidence').
 
 ### Installation
 
@@ -52,9 +58,10 @@ A privacy-first, secure web application designed for Sexual Harassment Committee
     ```
 
 3.  **Environment Setup**
-    Create a `.env.local` file in the root directory and add your Firebase credentials:
+    Create a `.env.local` file in the root directory:
 
     ```env
+    # Firebase Client
     NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
     NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
@@ -62,7 +69,11 @@ A privacy-first, secure web application designed for Sexual Harassment Committee
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
     NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-    # For Server-Side Admin Operations
+    # Supabase Storage
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+    # Firebase Admin (Server-Side)
     FIREBASE_SERVICE_ACCOUNT_KEY={"type": "service_account", ...}
     ```
 
