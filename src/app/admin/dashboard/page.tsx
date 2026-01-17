@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { supabase } from "@/lib/supabase";
 import { Complaint, UserProfile } from "@/types";
 import { useAuth } from "@/context/AuthContext";
-import { ComplaintEditor } from "@/app/dashboard/action-taker/complaint-editor"; // Fixed Import Path
+import { ComplaintEditor } from "@/app/dashboard/action-taker/complaint-editor"; 
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, X, LogOut, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ShieldAlert, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, X, LogOut, Loader2, UserCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -30,10 +30,13 @@ import { Badge } from "@/components/ui/badge";
 
 export default function AdminDashboard() {
   const { user, userData } = useAuth();
-  const router = useRouter(); // Added router
+  const router = useRouter();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
+  const [actionTakers, setActionTakers] = useState<UserProfile[]>([]);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [selectedTaker, setSelectedTaker] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -45,15 +48,28 @@ export default function AdminDashboard() {
   const [isExportOpen, setIsExportOpen] = useState(false);
 
   useEffect(() => {
-    // Basic Auth Check - though layout likely handles it
+    // Basic Auth Check
     if (!loading && !user) {
-         // router.push('/admin/login'); // Optional strict check
+         // router.push('/admin/login'); 
     }
   }, [user, loading, router]);
 
   useEffect(() => {
     setLoading(true);
-    // Admin sees ALL complaints
+
+    // 1. Fetch Action Takers (One-time fetch for dropdowns)
+    const fetchTakers = async () => {
+        try {
+            const takersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "action_taker")));
+            const fetchedTakers = takersSnap.docs.map(doc => ({ ...doc.data(), uid: doc.id } as UserProfile));
+            setActionTakers(fetchedTakers);
+        } catch (error) {
+            console.error("Failed to fetch action takers", error);
+        }
+    };
+    fetchTakers();
+
+    // 2. Realtime Complaints
     const q = query(
       collection(db, "complaints"),
       orderBy("createdAt", "desc")
@@ -100,7 +116,6 @@ export default function AdminDashboard() {
   const handleExport = (type: 'csv' | 'xlsx' | 'pdf') => {
     try {
       toast.info(`Generating ${type.toUpperCase()}...`);
-      // Admin context for export
       const dummyAdmin = user ? [{ uid: user.uid, name: (userData as any)?.name || 'Admin', email: user.email || '', role: 'admin', department: 'Management' } as UserProfile] : [];
 
       if (type === 'csv') exportToCSV(filteredComplaints, dummyAdmin);
@@ -124,6 +139,27 @@ export default function AdminDashboard() {
     setSeverityFilter("all");
     setDateRange(undefined);
   };
+
+  const handleAssign = async () => {
+    if (!selectedComplaint || !selectedTaker) return;
+    
+    setAssigning(true);
+    try {
+        await updateDoc(doc(db, "complaints", selectedComplaint.complaintId), {
+            assignedTo: selectedTaker,
+            status: 'Under Review' // Always move to Under Review on assignment
+        });
+        
+        const takerName = actionTakers.find(t => t.uid === selectedTaker)?.name;
+        toast.success(`Assigned to ${takerName}`);
+        setSelectedComplaint(null); // Close dialog
+    } catch (error) {
+        console.error(error);
+        toast.error("Assignment failed");
+    } finally {
+        setAssigning(false);
+    }
+};
 
   const getStatusColor = (status: string) => {
       switch (status) {
@@ -294,6 +330,7 @@ export default function AdminDashboard() {
                         <TableHead className="text-gray-300">Category</TableHead>
                         <TableHead className="text-gray-300">Severity</TableHead>
                         <TableHead className="text-gray-300">Status</TableHead>
+                        <TableHead className="text-gray-300">Assigned To</TableHead>
                         <TableHead className="text-gray-300">Date</TableHead>
                         <TableHead className="text-right text-gray-300">Actions</TableHead>
                     </TableRow>
@@ -301,51 +338,67 @@ export default function AdminDashboard() {
                 <TableBody>
                     {loading ? (
                         <TableRow>
-                            <TableCell colSpan={6} className="h-48 text-center text-gray-400">
+                            <TableCell colSpan={7} className="h-48 text-center text-gray-400">
                                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                                 Loading data...
                             </TableCell>
                         </TableRow>
                     ) : filteredComplaints.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={6} className="h-48 text-center text-gray-500">
+                            <TableCell colSpan={7} className="h-48 text-center text-gray-500">
                                 No records found.
                             </TableCell>
                         </TableRow>
                     ) : (
-                        filteredComplaints.map((complaint) => (
-                            <TableRow key={complaint.complaintId} className="border-white/5 hover:bg-white/5 transition-colors">
-                                <TableCell className="font-mono text-teal-400">{complaint.complaintId}</TableCell>
-                                <TableCell className="text-white">{complaint.category}</TableCell>
-                                <TableCell>
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
-                                        complaint.severity === 'Critical' ? 'border-red-500 text-red-400 bg-red-500/10' :
-                                        complaint.severity === 'High' ? 'border-orange-500 text-orange-400 bg-orange-500/10' :
-                                        'border-gray-500 text-gray-400'
-                                    }`}>
-                                        {complaint.severity}
-                                    </span>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant="outline" className={getStatusColor(complaint.status)}>
-                                        {complaint.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-gray-400 text-sm">
-                                    {complaint.createdAt ? new Date(complaint.createdAt.seconds * 1000).toLocaleDateString() : '-'}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button 
-                                        size="sm" 
-                                        variant="outline"
-                                        className="border-primary/20 hover:bg-primary/10 hover:text-primary text-gray-300"
-                                        onClick={() => setSelectedComplaint(complaint)}
-                                    >
-                                        Manage
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))
+                        filteredComplaints.map((complaint) => {
+                             const assignedUser = actionTakers.find(u => u.uid === complaint.assignedTo);
+                             return (
+                                <TableRow key={complaint.complaintId} className="border-white/5 hover:bg-white/5 transition-colors">
+                                    <TableCell className="font-mono text-teal-400">{complaint.complaintId}</TableCell>
+                                    <TableCell className="text-white">{complaint.category}</TableCell>
+                                    <TableCell>
+                                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                                            complaint.severity === 'Critical' ? 'border-red-500 text-red-400 bg-red-500/10' :
+                                            complaint.severity === 'High' ? 'border-orange-500 text-orange-400 bg-orange-500/10' :
+                                            'border-gray-500 text-gray-400'
+                                        }`}>
+                                            {complaint.severity}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className={getStatusColor(complaint.status)}>
+                                            {complaint.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-gray-300">
+                                        {assignedUser ? (
+                                            <div className="flex items-center gap-2">
+                                                <UserCheck className="w-3 h-3 text-green-400" />
+                                                {assignedUser.name}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-600 italic">Unassigned</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-gray-400 text-sm">
+                                        {complaint.createdAt ? new Date(complaint.createdAt.seconds * 1000).toLocaleDateString() : '-'}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            className="border-primary/20 hover:bg-primary/10 hover:text-primary text-gray-300"
+                                            onClick={() => {
+                                                setSelectedComplaint(complaint);
+                                                setSelectedTaker(complaint.assignedTo || "");
+                                            }}
+                                        >
+                                            Manage
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                             );
+                        })
                     )}
                 </TableBody>
             </Table>
@@ -393,6 +446,37 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
+            {/* Assignment Section (Restored) */}
+            <div className="bg-white/5 p-4 rounded-lg border border-white/5 space-y-4">
+                <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-200">Assign Action Taker</label>
+                    <Badge variant="outline" className="bg-teal-500/10 text-teal-400 border-teal-500/20">
+                        Admin Only
+                    </Badge>
+                </div>
+                <div className="flex gap-2">
+                    <Select value={selectedTaker} onValueChange={setSelectedTaker}>
+                        <SelectTrigger className="bg-black/50 border-white/10 flex-1">
+                            <SelectValue placeholder="Select an officer..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                            {actionTakers.map(taker => (
+                                <SelectItem key={taker.uid} value={taker.uid}>
+                                    {taker.name} ({taker.department || 'General'})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button 
+                        className="bg-teal-600 hover:bg-teal-500 text-white"
+                        onClick={handleAssign}
+                        disabled={assigning || !selectedTaker}
+                    >
+                        {assigning ? <Loader2 className="animate-spin w-4 h-4" /> : "Assign"}
+                    </Button>
+                </div>
+            </div>
+
             <div>
               <h4 className="font-semibold mb-2 text-gray-200">Description / Story</h4>
               <div className="text-sm text-gray-300 bg-black/40 border border-white/10 p-4 rounded-lg leading-relaxed whitespace-pre-wrap">
@@ -418,7 +502,7 @@ export default function AdminDashboard() {
                             const isVideo = ['mp4', 'webm', 'mov'].includes(ext || '');
                             const isAudio = ['mp3', 'wav', 'm4a'].includes(ext || '');
 
-                            if (isVideo) {
+                             if (isVideo) {
                                 return (
                                     <video 
                                         controls 
