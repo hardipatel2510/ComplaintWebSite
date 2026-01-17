@@ -140,24 +140,44 @@ function ComplaintContent() {
 
             // Upload File if selected
             if (file) {
+                 // RLS Policy Check: Must be JPG
+                 const fileExtension = file.name.split('.').pop()?.toLowerCase();
+                 if (fileExtension !== 'jpg' && fileExtension !== 'jpeg') {
+                     toast.error("Security Policy: Only .jpg images are allowed.");
+                     setIsSubmitting(false);
+                     return;
+                 }
+
                 try {
-                    const filePath = `${complaintId}/${Date.now()}_${file.name}`;
-                    const { data, error } = await supabase.storage.from('proof').upload(filePath, file);
+                    // RLS Policy Check: Must be in 'public' folder
+                    // RLS Policy Check: Bucket is 'Proof'
+                    const fileName = `${Date.now()}_${file.name}`; 
+                    // Ensure name ends in .jpg for the RLS check if strict, though checking extension usually splits by dot.
+                    // If user uploads .jpeg, Supabase RLS `storage.extension` might return `jpeg`. 
+                    // The policy explicitly says = 'jpg'. So we might need to enforce `.jpg`.
+                    // Let's rename to .jpg just in case if it is .jpeg
+                    
+                    let finalFileName = fileName;
+                    if (fileExtension === 'jpeg') {
+                        finalFileName = fileName.replace(/\.jpeg$/, '.jpg');
+                    }
+
+                    const filePath = `public/${complaintId}/${finalFileName}`;
+                    
+                    const { data, error } = await supabase.storage.from('Proof').upload(filePath, file);
 
                     if (error) {
-                        console.error("Supabase upload error:", error);
-                        throw new Error("File upload failed");
+                        console.error("Supabase upload error details:", error);
+                        throw new Error(`File upload failed: ${error.message}`);
                     }
 
                     if (data) {
                         storagePath = data.path;
-                        // Optional: Store public URL if bucket is public, but for evidence we likely want private access
-                        // fullAttachmentUrl = supabase.storage.from('proof').getPublicUrl(data.path).data.publicUrl;
                     }
 
-                } catch (uploadError) {
+                } catch (uploadError: any) {
                     console.error(uploadError);
-                    toast.error("Failed to upload evidence. Complaint submission aborted to preserve data integrity.");
+                    toast.error(`Upload refused by server: ${uploadError.message || "Policy violation"}`);
                     setIsSubmitting(false);
                     return; 
                 }
@@ -495,7 +515,7 @@ function ComplaintContent() {
                             </h3>
 
                             <FileUpload
-                                label="Upload Evidence (Image/Video)"
+                                label="Upload Evidence (JPG Image only)"
                                 onFilesSelected={(files) => {
                                     if (files && files.length > 0) {
                                         setFile(files[0]);
