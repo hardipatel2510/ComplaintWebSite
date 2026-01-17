@@ -14,7 +14,7 @@ export default function DashboardPage() {
     if (!loading && role) {
       if (role === 'action_taker') router.replace('/dashboard/action-taker');
       else if (role === 'committee') router.replace('/dashboard/committee');
-      else if (role === 'admin') router.replace('/dashboard/admin');
+      else if (role === 'admin') router.replace('/admin/dashboard');
       else {
         // Unknown role or user not setup
         // router.replace('/');
