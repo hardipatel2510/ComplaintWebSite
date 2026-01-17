@@ -29,6 +29,13 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Helper for Textarea with Label (similar to CustomInput)
 function CustomTextarea({ label, className, ...props }: any) {
@@ -55,12 +62,16 @@ function ComplaintContent() {
     const [otherCategoryVal, setOtherCategoryVal] = useState<string>("");
     const [urgency, setUrgency] = useState<string>("Low");
     
+    // Location Split State
+    const [campus, setCampus] = useState<string>("");
+    const [specificLocation, setSpecificLocation] = useState<string>("");
+
     // Separate state for Date object
     const [date, setDate] = useState<Date | undefined>(undefined);
 
     const [formData, setFormData] = useState({
         // dateTime removed from here, handled separately
-        location: "",
+        // location removed, handled by campus + specificLocation
         perpetrator: "",
         witnesses: "",
         description: "",
@@ -102,8 +113,13 @@ function ComplaintContent() {
             return;
         }
 
-        if (!formData.location.trim()) {
-            toast.error("Please specify the location.");
+        if (!campus) {
+             toast.error("Please select a campus.");
+             return;
+        }
+
+        if (!specificLocation.trim()) {
+            toast.error("Please specify the exact location.");
             return;
         }
 
@@ -187,7 +203,7 @@ function ComplaintContent() {
                 severity: urgency as any,
                 description: formData.description,
                 incidentDate: date ? date.toISOString() : new Date().toISOString(), 
-                location: formData.location, 
+                location: `${campus} | ${specificLocation}`, 
                 perpetrator: formData.perpetrator, 
                 witnesses: formData.witnesses, 
                 attachmentUrl: null, // Defer to storagePath
@@ -215,7 +231,8 @@ function ComplaintContent() {
         category &&
         (category !== "Other" || otherCategoryVal.trim()) &&
         date &&
-        formData.location.trim() &&
+        campus &&
+        specificLocation.trim() &&
         formData.perpetrator.trim() &&
         formData.witnesses.trim() &&
         formData.description.trim().length >= 20
@@ -433,30 +450,40 @@ function ComplaintContent() {
                                     setDate={setDate}
                                 />
                                 
-                                <div className="space-y-2">
-                                    <Label className="text-gray-300 font-medium">Location</Label>
-                                    <div className="relative">
-                                        <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                                        <select
-                                            name="location"
-                                            value={formData.location}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                                            className="w-full bg-black/20 border border-white/10 text-white rounded-md p-3 pl-10 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 appearance-none transition-colors"
-                                            required
-                                        >
-                                            <option value="" disabled className="text-gray-500 bg-neutral-900">Select Campus Location</option>
-                                            <option value="SAL Institute of Technology & Engineering and Research" className="bg-neutral-900">SAL Institute of Technology & Engineering and Research</option>
-                                            <option value="SAL College of Engineering" className="bg-neutral-900">SAL College of Engineering</option>
-                                            <option value="SAL Engineering and Technical Institute" className="bg-neutral-900">SAL Engineering and Technical Institute</option>
-                                            <option value="SAL Institute of Diploma Studies" className="bg-neutral-900">SAL Institute of Diploma Studies</option>
-                                            <option value="SAL Institute of Management" className="bg-neutral-900">SAL Institute of Management</option>
-                                            <option value="SAL Institute of Pharmacy" className="bg-neutral-900">SAL Institute of Pharmacy</option>
-                                            <option value="SAL College of Pharmacy" className="bg-neutral-900">SAL College of Pharmacy</option>
-                                            <option value="SAL School of Architecture" className="bg-neutral-900">SAL School of Architecture</option>
-                                            <option value="SAL School of Interior Design" className="bg-neutral-900">SAL School of Interior Design</option>
-                                            <option value="Other" className="bg-neutral-900">Other (Please specify in description)</option>
-                                        </select>
+                                <div className="space-y-4">
+                                     {/* Campus Selector */}
+                                    <div className="space-y-2">
+                                        <Label className="text-gray-300 font-medium">Campus / Institute</Label>
+                                         <Select value={campus} onValueChange={setCampus}>
+                                            <SelectTrigger className="w-full bg-black/20 border-white/10 text-white h-12">
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={16} className="text-gray-500" />
+                                                    <SelectValue placeholder="Select Campus" />
+                                                </div>
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                                                <SelectItem value="SAL Institute of Technology & Engineering and Research">SAL Institute of Technology & Engineering and Research</SelectItem>
+                                                <SelectItem value="SAL College of Engineering">SAL College of Engineering</SelectItem>
+                                                <SelectItem value="SAL Engineering and Technical Institute">SAL Engineering and Technical Institute</SelectItem>
+                                                <SelectItem value="SAL Institute of Diploma Studies">SAL Institute of Diploma Studies</SelectItem>
+                                                <SelectItem value="SAL Institute of Management">SAL Institute of Management</SelectItem>
+                                                <SelectItem value="SAL Institute of Pharmacy">SAL Institute of Pharmacy</SelectItem>
+                                                <SelectItem value="SAL College of Pharmacy">SAL College of Pharmacy</option>
+                                                <SelectItem value="SAL School of Architecture">SAL School of Architecture</SelectItem>
+                                                <SelectItem value="SAL School of Interior Design">SAL School of Interior Design</SelectItem>
+                                                <SelectItem value="Other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
+
+                                    {/* Specific Location Input */}
+                                    <Input
+                                        label="Specific Area (Room / Floor / Building)"
+                                        value={specificLocation}
+                                        onChange={(e) => setSpecificLocation(e.target.value)}
+                                        placeholder="e.g. Library 2nd Floor, Room 101, Canteen..."
+                                        required
+                                    />
                                 </div>
                             </div>
                         </div>
