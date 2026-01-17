@@ -140,10 +140,12 @@ function ComplaintContent() {
 
             // Upload File if selected
             if (file) {
-                 // RLS Policy Check: Must be JPG
+                 // RLS Policy Check: Allow Images, Videos, Audio
+                 const allowedExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'mov', 'webm', 'mp3', 'wav', 'm4a'];
                  const fileExtension = file.name.split('.').pop()?.toLowerCase();
-                 if (fileExtension !== 'jpg' && fileExtension !== 'jpeg') {
-                     toast.error("Security Policy: Only .jpg images are allowed.");
+                 
+                 if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+                     toast.error("Format not supported. Allowed: JPG, PNG, MP4, MOV, WEBM, MP3, WAV");
                      setIsSubmitting(false);
                      return;
                  }
@@ -151,18 +153,8 @@ function ComplaintContent() {
                 try {
                     // RLS Policy Check: Must be in 'public' folder
                     // RLS Policy Check: Bucket is 'Proof'
-                    const fileName = `${Date.now()}_${file.name}`; 
-                    // Ensure name ends in .jpg for the RLS check if strict, though checking extension usually splits by dot.
-                    // If user uploads .jpeg, Supabase RLS `storage.extension` might return `jpeg`. 
-                    // The policy explicitly says = 'jpg'. So we might need to enforce `.jpg`.
-                    // Let's rename to .jpg just in case if it is .jpeg
-                    
-                    let finalFileName = fileName;
-                    if (fileExtension === 'jpeg') {
-                        finalFileName = fileName.replace(/\.jpeg$/, '.jpg');
-                    }
-
-                    const filePath = `public/${complaintId}/${finalFileName}`;
+                    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`; // Sanitize spaces
+                    const filePath = `public/${complaintId}/${fileName}`;
                     
                     const { data, error } = await supabase.storage.from('Proof').upload(filePath, file);
 
@@ -515,7 +507,7 @@ function ComplaintContent() {
                             </h3>
 
                             <FileUpload
-                                label="Upload Evidence (JPG Image only)"
+                                label="Upload Evidence (Image / Video / Audio)"
                                 onFilesSelected={(files) => {
                                     if (files && files.length > 0) {
                                         setFile(files[0]);
