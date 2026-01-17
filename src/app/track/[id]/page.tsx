@@ -88,6 +88,24 @@ export default function ComplaintStatus() {
               </Alert>
           </div>
       )
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A1116] p-4">
+        <Alert variant="destructive" className="max-w-md bg-red-900/20 border-red-500/50 text-red-200">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error Accessing Record</AlertTitle>
+          <AlertDescription>
+            {error || "Complaint record not found or access denied."}
+          </AlertDescription>
+        </Alert>
+        <Button 
+            variant="link" 
+            className="mt-4 text-gray-400 hover:text-white"
+            onClick={() => router.push('/track')}
+        >
+            Try Again
+        </Button>
+      </div>
+    );
   }
 
   const getStatusColor = (status: string) => {
@@ -104,49 +122,88 @@ export default function ComplaintStatus() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-12 px-4">
-        <div className="max-w-3xl mx-auto space-y-6">
-            <div className="mb-4">
-                <Link href="/" className="text-sm text-neutral-500 hover:underline">&larr; Back to Home</Link>
+    <div className="min-h-screen flex flex-col items-center bg-[#0A1116] px-4 relative overflow-hidden py-8">
+        {/* Ambient Background Effects */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-[-10%] right-[20%] w-[30%] h-[30%] bg-teal-500/10 rounded-full blur-[100px]" />
+            <div className="absolute bottom-[-10%] left-[10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
+        </div>
+
+      <div className="max-w-3xl mx-auto relative z-10 w-full space-y-8">
+        <div className="flex items-center justify-between">
+            <Link href="/track" className="text-sm text-gray-400 hover:text-teal-400 transition-colors flex items-center gap-2">
+                &larr; Back to Tracker
+            </Link>
+            <div className="text-xs text-gray-500 font-mono">
+                Session Secure
             </div>
+        </div>
 
-            <Card className="border-l-4 border-l-blue-500 shadow-sm">
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardDescription className="uppercase text-xs font-bold tracking-wider mb-1">Complaint ID</CardDescription>
-                            <CardTitle className="text-3xl font-mono">{complaint.complaintId}</CardTitle>
-                        </div>
-                        <Badge variant="outline" className={`px-4 py-1 border-0 ${getStatusColor(complaint.status)}`}>
-                            {complaint.status}
+        <Card className="bg-black/40 border-white/10 shadow-2xl backdrop-blur-md overflow-hidden">
+          <CardHeader className="border-b border-white/5 pb-6">
+            <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
+                <div>
+                    <CardTitle className="text-2xl text-white font-bold flex items-center gap-3">
+                        Complaint Status
+                        <Badge variant="outline" className="text-teal-400 border-teal-500/30 bg-teal-500/10 font-mono font-normal">
+                            {complaint.complaintId}
                         </Badge>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                     <div className="grid gap-4 md:grid-cols-3 text-sm">
-                         <div>
-                             <span className="text-neutral-500 block">Category</span>
-                             <span className="font-medium text-neutral-900 dark:text-neutral-100">{complaint.category}</span>
-                         </div>
-                         <div>
-                             <span className="text-neutral-500 block">Severity</span>
-                             <span className="font-medium text-neutral-900 dark:text-neutral-100">{complaint.severity}</span>
-                         </div>
-                         <div>
-                             <span className="text-neutral-500 block">Submitted On</span>
-                             <span className="font-medium text-neutral-900 dark:text-neutral-100">
-                                {complaint.createdAt ? format(complaint.createdAt.toDate(), "PPP") : "N/A"}
-                             </span>
-                         </div>
-                     </div>
-
-                     <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
-                        <span className="text-neutral-500 block text-sm mb-2">Description</span>
-                        <div className="p-4 rounded-md bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap leading-relaxed">
-                            {complaint.description}
+                    </CardTitle>
+                    <CardDescription className="text-gray-400 mt-1 flex items-center gap-2">
+                        <Clock className="w-3 h-3" />
+                        Submitted on {complaint.createdAt ? format(new Date(complaint.createdAt.seconds * 1000), "PPP") : "Unknown"}
+                    </CardDescription>
+                </div>
+                {/* Status Badge */}
+                <div className={`px-4 py-1.5 rounded-full border text-sm font-medium ${
+                    complaint.status === 'Resolved' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                    complaint.status === 'Dismissed' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                    'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                }`}>
+                    {complaint.status}
+                </div>
+            </div>
+            
+            {/* Progress Bar (Visual Only) */}
+            <div className="w-full bg-white/5 h-1.5 mt-6 rounded-full overflow-hidden">
+                <div 
+                    className={`h-full transition-all duration-1000 ease-out rounded-full ${
+                        complaint.status === 'Resolved' ? 'w-full bg-green-500' :
+                        complaint.status === 'Dismissed' ? 'w-full bg-red-500' :
+                        complaint.status === 'Investigation' ? 'w-[75%] bg-blue-500' :
+                        complaint.status === 'Under Review' ? 'w-[50%] bg-blue-500' :
+                        'w-[25%] bg-teal-500'
+                    }`}
+                />
+            </div>
+          </CardHeader>
+          
+          <CardContent className="pt-6 space-y-6">
+            {/* Updates Section */}
+            <div>
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500" />
+                    Case Timeline
+                </h3>
+                
+                {/* Logic for timeline could go here, for now placeholder text */}
+                <div className="space-y-4">
+                    <div className="border-l-2 border-white/10 pl-4 ml-2 space-y-6">
+                        {/* Current Status Item */}
+                        <div className="relative">
+                            <span className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-teal-500 border-2 border-[#0A1116]" />
+                            <p className="text-white font-medium">Current Status: {complaint.status}</p>
+                            <p className="text-sm text-gray-500 mt-1">Your report is currently in this stage.</p>
                         </div>
-                     </div>
-
+                         {/* Submitted Item */}
+                         <div className="relative opacity-50">
+                            <span className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-gray-600 border-2 border-[#0A1116]" />
+                            <p className="text-gray-300 font-medium">Complaint Received</p>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {complaint.createdAt ? format(new Date(complaint.createdAt.seconds * 1000), "PPP p") : "-"}
+                            </p>
+                        </div>
+                    </div>
                      {/* Evidence Section */}
                      {complaint.attachmentUrl && (
                          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
