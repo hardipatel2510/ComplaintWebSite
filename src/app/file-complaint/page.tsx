@@ -115,6 +115,14 @@ function ComplaintContent() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleFileSelect = (files: FileList | null) => {
+        if (files) {
+            setSelectedFiles(Array.from(files));
+        } else {
+            setSelectedFiles([]);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
